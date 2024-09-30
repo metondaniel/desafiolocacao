@@ -1,0 +1,50 @@
+﻿version: '3.4'
+
+services:
+  db:
+    image: postgres:13
+    container_name: desafio_mottu_db
+    environment:
+      POSTGRES_USER: mottu
+      POSTGRES_PASSWORD: mottupassword
+      POSTGRES_DB: mottu_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - mottu-net
+ 
+  api:
+    build: .
+    container_name: desafio_mottu_api
+    ports:
+      - "5000:5000"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - RABBITMQ_HOST= rabbitmq
+      - RABBITMQ_PORT= 5672
+    depends_on:
+      - db
+      - rabbitmq
+    networks:
+      - mottu-net
+      
+  rabbitmq:
+    image: "rabbitmq:3-management"
+    container_name: rabbitmq
+    ports:
+      - "5672:5672" 
+      - "15672:15672"
+    networks:
+      - mottu-net
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+
+networks:
+  mottu-net:
+    driver: bridge
+    
+volumes:
+  pgdata:
